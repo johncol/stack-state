@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.Test;
-import stackstate.domain.enumeration.StateValue;
 import utils.Any;
 
 public class StateValueSpecification {

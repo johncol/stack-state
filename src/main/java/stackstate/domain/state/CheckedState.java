@@ -1,44 +1,52 @@
 package stackstate.domain.state;
 
-import stackstate.domain.enumeration.StateValue;
-import stackstate.domain.event.Event;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import stackstate.domain.enumeration.StateValue;
+import stackstate.domain.event.Event;
 
 @ToString
 @EqualsAndHashCode
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class CheckedState implements UpdatableState<Event>, Cloneable {
+public class CheckedState implements UpdatableState<Event, CheckedState>, Cloneable {
 
   private final Map<String, StateValue> values;
 
-  public CheckedState() {
-    values = new HashMap<>();
+  private CheckedState(Map<String, StateValue> values) {
+    this.values = Collections.unmodifiableMap(values);
   }
 
   public static CheckedState dataless() {
-    return new CheckedState();
+    return new CheckedState(new HashMap<>());
   }
 
-  public static CheckedState with(String checkedState, StateValue state) {
-    CheckedState checkedStates = new CheckedState();
-    checkedStates.updateMap(checkedState, state);
-    return checkedStates;
+  public static CheckedState dataless(String... checkedStates) {
+    CheckedState.Builder builder = new CheckedState.Builder();
+    Arrays.stream(checkedStates)
+        .forEach(state -> builder.add(state, StateValue.NO_DATA));
+    return builder.build();
   }
 
-  public CheckedState and(String checkedState, StateValue state) {
-    updateMap(checkedState, state);
-    return this;
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static Builder with(String checkedState, StateValue state) {
+    return new Builder(checkedState, state);
+  }
+
+  public static CheckedState withJust(String checkedState, StateValue state) {
+    return CheckedState.with(checkedState, state).build();
   }
 
   @Override
-  public void updateGiven(Event event) {
-    updateMap(event.getCheckState(), event.getState());
+  public CheckedState updateGiven(Event event) {
+    Map<String, StateValue> newValues = new HashMap<>(values);
+    newValues.put(event.getCheckState(), event.getState());
+    return new CheckedState(newValues);
   }
 
   public boolean isTracking(String checkState) {
@@ -57,12 +65,35 @@ public class CheckedState implements UpdatableState<Event>, Cloneable {
         .orElse(StateValue.NO_DATA);
   }
 
-  private void updateMap(String checkedState, StateValue state) {
-    values.put(checkedState, state);
-  }
-
   @Override
   public CheckedState clone() {
     return new CheckedState(Collections.unmodifiableMap(values));
   }
+
+  public static class Builder {
+
+    private final Map<String, StateValue> values = new HashMap<>();
+
+    private Builder() {
+    }
+
+    private Builder(String checkedState, StateValue state) {
+      values.put(checkedState, state);
+    }
+
+    public Builder and(String checkedState, StateValue state) {
+      add(checkedState, state);
+      return this;
+    }
+
+    public CheckedState build() {
+      return new CheckedState(values);
+    }
+
+    private void add(String checkedState, StateValue state) {
+      values.put(checkedState, state);
+    }
+
+  }
+
 }

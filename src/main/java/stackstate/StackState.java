@@ -1,11 +1,11 @@
 package stackstate;
 
-import stackstate.domain.Component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import stackstate.domain.Component;
 
 @Builder
 @AllArgsConstructor

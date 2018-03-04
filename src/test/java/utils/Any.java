@@ -2,15 +2,15 @@ package utils;
 
 import com.github.javafaker.Faker;
 import com.github.javafaker.GameOfThrones;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.stream.Stream;
 import stackstate.domain.Component;
 import stackstate.domain.enumeration.StateValue;
 import stackstate.domain.event.Event;
 import stackstate.domain.state.CheckedState;
 import stackstate.domain.state.DerivedState;
 import stackstate.domain.state.OwnState;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.stream.Stream;
 
 public class Any {
 
@@ -21,7 +21,7 @@ public class Any {
   }
 
   public static Event event() {
-    return Event.of(faker.app().name(), faker.beer().malt(), Any.of(StateValue.values()));
+    return Event.of(new Random().nextLong(), faker.app().name(), faker.beer().malt(), Any.of(StateValue.values()));
   }
 
   public static OwnState ownState() {
@@ -33,12 +33,12 @@ public class Any {
   }
 
   public static CheckedState checkedState() {
-    CheckedState checkedState = CheckedState.dataless();
+    CheckedState.Builder checkedState = CheckedState.builder();
     GameOfThrones gameOfThrones = faker.gameOfThrones();
     Stream.generate(gameOfThrones::character)
         .limit(3)
         .forEach(character -> checkedState.and(character, Any.of(StateValue.values())));
-    return checkedState;
+    return checkedState.build();
   }
 
   public static Component componentWithDerivedState(StateValue derivedState) {

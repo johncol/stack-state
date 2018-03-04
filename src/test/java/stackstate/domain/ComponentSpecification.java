@@ -5,18 +5,19 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import stackstate.domain.Component;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.Test;
 import stackstate.domain.event.Event;
 import stackstate.domain.state.CheckedState;
 import stackstate.domain.state.DerivedState;
 import stackstate.domain.state.OwnState;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.Test;
 import utils.Any;
 
 public class ComponentSpecification {
@@ -46,12 +47,15 @@ public class ComponentSpecification {
         .dependents(new HashSet<>())
         .build();
 
-    Event event = Any.event();
-    component.apply(event);
+    when(checkedState.updateGiven(any(Event.class))).thenReturn(checkedState);
+    when(ownState.updateGiven(any(CheckedState.class))).thenReturn(ownState);
+    when(derivedState.updateGiven(any(Component.class))).thenReturn(derivedState);
 
-    verify(checkedState, times(1)).updateGiven(event);
-    verify(ownState, times(1)).updateGiven(checkedState);
-    verify(derivedState, times(1)).updateGiven(component);
+    component.apply(Any.event());
+
+    verify(checkedState, times(1)).updateGiven(any(Event.class));
+    verify(ownState, times(1)).updateGiven(any(CheckedState.class));
+    verify(derivedState, times(1)).updateGiven(any(Component.class));
   }
 
   @Test

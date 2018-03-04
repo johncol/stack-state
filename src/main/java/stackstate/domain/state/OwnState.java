@@ -1,17 +1,17 @@
 package stackstate.domain.state;
 
-import stackstate.domain.enumeration.StateValue;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import stackstate.domain.enumeration.StateValue;
 
 @ToString
 @EqualsAndHashCode
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class OwnState implements UpdatableState<CheckedState>, Cloneable {
+public class OwnState implements UpdatableState<CheckedState, OwnState>, Cloneable {
 
-  private StateValue state;
+  private final StateValue state;
 
   public static OwnState of(StateValue state) {
     return new OwnState(state);
@@ -22,8 +22,8 @@ public class OwnState implements UpdatableState<CheckedState>, Cloneable {
   }
 
   @Override
-  public void updateGiven(CheckedState checkedState) {
-    state = checkedState.getHighestState();
+  public OwnState updateGiven(CheckedState checkedState) {
+    return OwnState.of(checkedState.getHighestState());
   }
 
   public StateValue value() {

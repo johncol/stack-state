@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+import org.junit.Test;
 import stackstate.domain.Component;
 import stackstate.domain.enumeration.StateValue;
 import stackstate.domain.event.Event;
@@ -11,9 +12,6 @@ import stackstate.domain.event.EventChain;
 import stackstate.domain.state.CheckedState;
 import stackstate.domain.state.DerivedState;
 import stackstate.domain.state.OwnState;
-import org.junit.Test;
-import stackstate.StackState;
-import stackstate.StateCalculator;
 
 public class StateCalculatorSpecification {
 
@@ -59,7 +57,7 @@ public class StateCalculatorSpecification {
 
     assertThat(finalState.getComponent("APP").get(), is(equalTo(Component.builder()
         .id("APP")
-        .checkedState(CheckedState.with(memoryCheckState, StateValue.WARNING))
+        .checkedState(CheckedState.withJust(memoryCheckState, StateValue.WARNING))
         .ownState(OwnState.of(StateValue.WARNING))
         .derivedState(DerivedState.of(StateValue.WARNING))
         .build())));
@@ -134,7 +132,7 @@ public class StateCalculatorSpecification {
         .id("APP")
         .ownState(OwnState.of(StateValue.WARNING))
         .derivedState(DerivedState.of(StateValue.ALERT))
-        .checkedState(CheckedState.with(memoryCheckState, StateValue.WARNING))
+        .checkedState(CheckedState.withJust(memoryCheckState, StateValue.WARNING))
         .build();
     assertThat(finalStackState.getComponent("APP").get(), is(equalTo(expectedAppState)));
 
@@ -142,9 +140,135 @@ public class StateCalculatorSpecification {
         .id("DB")
         .ownState(OwnState.of(StateValue.ALERT))
         .derivedState(DerivedState.of(StateValue.ALERT))
-        .checkedState(CheckedState.with(memoryCheckState, StateValue.ALERT))
+        .checkedState(CheckedState.withJust(memoryCheckState, StateValue.ALERT))
         .build();
     assertThat(finalStackState.getComponent("DB").get(), is(equalTo(expectedDbState)));
+  }
+
+  @Test
+  public void shouldCalculateStateForComplexStackStateSystemsWhenOneEventIsSent() {
+    String cpuLoadCheckedState = "CPU load";
+    String ramUsageCheckedState = "RAM usage";
+    String[] checkedStates = {cpuLoadCheckedState, ramUsageCheckedState};
+
+    Component app = Component.withIdAndCheckedStates("APP", checkedStates);
+    Component queue = Component.withIdAndCheckedStates("QUEUE", checkedStates);
+    Component sqlDb = Component.withIdAndCheckedStates("SQL-DB", checkedStates);
+    Component noSqlDb = Component.withIdAndCheckedStates("NOSQL-DB", checkedStates);
+
+    app.addDependencyOn(queue, sqlDb, noSqlDb);
+    queue.addDependencyOn(app);
+    sqlDb.addDependencyOn(queue);
+    noSqlDb.addDependencyOn(queue);
+
+    StackState stackState = StackState.withComponents(app, queue, sqlDb, noSqlDb);
+
+    Event sqlDbWarningEvent = Event.of(1, "SQL-DB", cpuLoadCheckedState, StateValue.WARNING);
+
+    StackState finalStackState = stateCalculator.processEvents(stackState, EventChain.withEvent(sqlDbWarningEvent));
+
+    Component expectedSqlDbComponentState = Component.builder()
+        .id("SQL-DB")
+        .ownState(OwnState.of(StateValue.WARNING))
+        .derivedState(DerivedState.of(StateValue.WARNING))
+        .checkedState(CheckedState
+            .with(ramUsageCheckedState, StateValue.NO_DATA)
+            .and(cpuLoadCheckedState, StateValue.WARNING)
+            .build())
+        .build();
+    assertThat(finalStackState.getComponent("SQL-DB").get(), is(equalTo(expectedSqlDbComponentState)));
+
+    Component expectedAppComponentState = Component.builder()
+        .id("APP")
+        .ownState(OwnState.of(StateValue.NO_DATA))
+        .derivedState(DerivedState.of(StateValue.WARNING))
+        .checkedState(CheckedState.dataless(checkedStates))
+        .build();
+    assertThat(finalStackState.getComponent("APP").get(), is(equalTo(expectedAppComponentState)));
+
+    Component expectedNoSqlDbComponentState = Component.builder()
+        .id("NOSQL-DB")
+        .ownState(OwnState.of(StateValue.NO_DATA))
+        .derivedState(DerivedState.of(StateValue.WARNING))
+        .checkedState(CheckedState.dataless(checkedStates))
+        .build();
+    assertThat(finalStackState.getComponent("NOSQL-DB").get(), is(equalTo(expectedNoSqlDbComponentState)));
+
+    Component expectedQueueComponentState = Component.builder()
+        .id("QUEUE")
+        .ownState(OwnState.of(StateValue.NO_DATA))
+        .derivedState(DerivedState.of(StateValue.WARNING))
+        .checkedState(CheckedState.dataless(checkedStates))
+        .build();
+    assertThat(finalStackState.getComponent("QUEUE").get(), is(equalTo(expectedQueueComponentState)));
+  }
+
+  @Test
+  public void shouldCalculateStateForComplexStackStateSystemsWhenSeveralEventsAreSent() {
+    String cpuLoadCheckedState = "CPU load";
+    String ramUsageCheckedState = "RAM usage";
+    String[] checkedStates = {cpuLoadCheckedState, ramUsageCheckedState};
+
+    Component app = Component.withIdAndCheckedStates("APP", checkedStates);
+    Component queue = Component.withIdAndCheckedStates("QUEUE", checkedStates);
+    Component sqlDb = Component.withIdAndCheckedStates("SQL-DB", checkedStates);
+    Component noSqlDb = Component.withIdAndCheckedStates("NOSQL-DB", checkedStates);
+
+    app.addDependencyOn(queue, sqlDb, noSqlDb);
+    queue.addDependencyOn(app);
+    sqlDb.addDependencyOn(queue);
+    noSqlDb.addDependencyOn(queue);
+
+    StackState stackState = StackState.withComponents(app, queue, sqlDb, noSqlDb);
+
+    Event sqlDbWarningEvent = Event.of(1, "SQL-DB", cpuLoadCheckedState, StateValue.WARNING);
+    Event queueAlertEvent = Event.of(2, "QUEUE", cpuLoadCheckedState, StateValue.ALERT);
+    Event appClearEvent = Event.of(3, "APP", ramUsageCheckedState, StateValue.CLEAR);
+    Event queueWarningEvent = Event.of(4, "QUEUE", cpuLoadCheckedState, StateValue.WARNING);
+    EventChain events = EventChain.withEvents(queueWarningEvent, queueAlertEvent, sqlDbWarningEvent, appClearEvent);
+
+    StackState finalStackState = stateCalculator.processEvents(stackState, events);
+
+    Component expectedAppComponentState = Component.builder()
+        .id("APP")
+        .ownState(OwnState.of(StateValue.CLEAR))
+        .derivedState(DerivedState.of(StateValue.ALERT))
+        .checkedState(CheckedState
+            .with(ramUsageCheckedState, StateValue.CLEAR)
+            .and(cpuLoadCheckedState, StateValue.NO_DATA)
+            .build())
+        .build();
+    assertThat(finalStackState.getComponent("APP").get(), is(equalTo(expectedAppComponentState)));
+
+    Component expectedSqlDbComponentState = Component.builder()
+        .id("SQL-DB")
+        .ownState(OwnState.of(StateValue.WARNING))
+        .derivedState(DerivedState.of(StateValue.ALERT))
+        .checkedState(CheckedState
+            .with(ramUsageCheckedState, StateValue.NO_DATA)
+            .and(cpuLoadCheckedState, StateValue.WARNING)
+            .build())
+        .build();
+    assertThat(finalStackState.getComponent("SQL-DB").get(), is(equalTo(expectedSqlDbComponentState)));
+
+    Component expectedNoSqlDbComponentState = Component.builder()
+        .id("NOSQL-DB")
+        .ownState(OwnState.of(StateValue.NO_DATA))
+        .derivedState(DerivedState.of(StateValue.ALERT))
+        .checkedState(CheckedState.dataless(checkedStates))
+        .build();
+    assertThat(finalStackState.getComponent("NOSQL-DB").get(), is(equalTo(expectedNoSqlDbComponentState)));
+
+    Component expectedQueueComponentState = Component.builder()
+        .id("QUEUE")
+        .ownState(OwnState.of(StateValue.WARNING))
+        .derivedState(DerivedState.of(StateValue.ALERT))
+        .checkedState(CheckedState
+            .with(ramUsageCheckedState, StateValue.NO_DATA)
+            .and(cpuLoadCheckedState, StateValue.WARNING)
+            .build())
+        .build();
+    assertThat(finalStackState.getComponent("QUEUE").get(), is(equalTo(expectedQueueComponentState)));
   }
 
 }

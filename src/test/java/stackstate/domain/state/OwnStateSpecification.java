@@ -3,10 +3,8 @@ package stackstate.domain.state;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import stackstate.domain.enumeration.StateValue;
 import org.junit.Test;
-import stackstate.domain.state.CheckedState;
-import stackstate.domain.state.OwnState;
+import stackstate.domain.enumeration.StateValue;
 import utils.Any;
 
 public class OwnStateSpecification {
@@ -23,10 +21,10 @@ public class OwnStateSpecification {
     CheckedState checkedState = CheckedState
         .with("memory", StateValue.WARNING)
         .and("sql-db", StateValue.ALERT)
-        .and("queue", StateValue.CLEAR);
-    OwnState ownState = Any.ownState();
+        .and("queue", StateValue.CLEAR)
+        .build();
 
-    ownState.updateGiven(checkedState);
+    OwnState ownState = Any.ownState().updateGiven(checkedState);
 
     assertThat(ownState.value(), is(StateValue.ALERT));
   }
@@ -34,9 +32,8 @@ public class OwnStateSpecification {
   @Test
   public void shouldUpdateOwnStateToNoDataStateWhenThereAreNotAnyCheckedStates() {
     CheckedState emptyCheckedState = CheckedState.dataless();
-    OwnState ownState = Any.ownState();
 
-    ownState.updateGiven(emptyCheckedState);
+    OwnState ownState = Any.ownState().updateGiven(emptyCheckedState);
 
     assertThat(ownState.value(), is(StateValue.NO_DATA));
   }

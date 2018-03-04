@@ -3,6 +3,7 @@ package stackstate.domain.event;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
@@ -32,4 +33,9 @@ public class EventChain implements Iterable<Event> {
   public Iterator<Event> iterator() {
     return events.iterator();
   }
+
+  public Stream<Event> stream() {
+    return events.stream();
+  }
+
 }

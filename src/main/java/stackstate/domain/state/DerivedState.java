@@ -1,18 +1,18 @@
 package stackstate.domain.state;
 
-import stackstate.domain.Component;
-import stackstate.domain.enumeration.StateValue;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import stackstate.domain.Component;
+import stackstate.domain.enumeration.StateValue;
 
 @ToString
 @EqualsAndHashCode
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class DerivedState implements UpdatableState<Component>, Cloneable {
+public class DerivedState implements UpdatableState<Component, DerivedState>, Cloneable {
 
-  private StateValue state;
+  private final StateValue state;
 
   public static DerivedState of(StateValue state) {
     return new DerivedState(state);
@@ -23,10 +23,10 @@ public class DerivedState implements UpdatableState<Component>, Cloneable {
   }
 
   @Override
-  public void updateGiven(Component component) {
+  public DerivedState updateGiven(Component component) {
     StateValue dependenciesStateValue = obtainDependenciesStateValue(component);
     StateValue ownState = obtainOwnState(component);
-    state = StateValue.highestOf(dependenciesStateValue, ownState);
+    return DerivedState.of(StateValue.highestOf(dependenciesStateValue, ownState));
   }
 
   public StateValue value() {

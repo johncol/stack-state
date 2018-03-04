@@ -3,12 +3,10 @@ package stackstate.domain.state;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import stackstate.domain.Component;
-import stackstate.domain.enumeration.StateValue;
 import java.util.Set;
 import org.junit.Test;
-import stackstate.domain.state.DerivedState;
-import stackstate.domain.state.OwnState;
+import stackstate.domain.Component;
+import stackstate.domain.enumeration.StateValue;
 import utils.Any;
 
 public class DerivedStateSpecification {
@@ -33,8 +31,7 @@ public class DerivedStateSpecification {
         .dependencies(dependencies)
         .build();
 
-    DerivedState derivedState = Any.derivedState();
-    derivedState.updateGiven(component);
+    DerivedState derivedState = Any.derivedState().updateGiven(component);
 
     assertThat(derivedState.value(), is(StateValue.NO_DATA));
   }
@@ -51,8 +48,7 @@ public class DerivedStateSpecification {
         .dependencies(dependencies)
         .build();
 
-    DerivedState derivedState = Any.derivedState();
-    derivedState.updateGiven(component);
+    DerivedState derivedState = Any.derivedState().updateGiven(component);
 
     assertThat(derivedState.value(), is(StateValue.ALERT));
   }
@@ -68,8 +64,7 @@ public class DerivedStateSpecification {
         .dependencies(dependencies)
         .build();
 
-    DerivedState derivedState = Any.derivedState();
-    derivedState.updateGiven(component);
+    DerivedState derivedState = Any.derivedState().updateGiven(component);
 
     assertThat(derivedState.value(), is(StateValue.ALERT));
   }

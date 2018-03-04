@@ -4,16 +4,15 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
+import org.junit.Test;
 import stackstate.domain.enumeration.StateValue;
 import stackstate.domain.event.Event;
-import org.junit.Test;
-import stackstate.domain.state.CheckedState;
 
 public class CheckedStateSpecification {
 
   @Test
   public void shouldReturnNoDataWhenAskedForCheckedStateThatIsNotBeingTracked() {
-    CheckedState checkedState = CheckedState.with("memory", StateValue.CLEAR);
+    CheckedState checkedState = CheckedState.withJust("memory", StateValue.CLEAR);
 
     assertThat(checkedState.isTracking("app"), is(false));
     assertThat(checkedState.valueOf("app"), is(StateValue.NO_DATA));
@@ -23,7 +22,8 @@ public class CheckedStateSpecification {
   public void shouldBuildCheckedStatesWithSentValues() {
     CheckedState checkedState = CheckedState
         .with("memory", StateValue.CLEAR)
-        .and("nosql-db", StateValue.WARNING);
+        .and("nosql-db", StateValue.WARNING)
+        .build();
 
     assertThat(checkedState.isTracking("memory"), is(true));
     assertThat(checkedState.valueOf("memory"), is(StateValue.CLEAR));
@@ -44,7 +44,8 @@ public class CheckedStateSpecification {
     CheckedState checkedState = CheckedState
         .with("memory", StateValue.CLEAR)
         .and("sql-db", StateValue.ALERT)
-        .and("nosql-db", StateValue.WARNING);
+        .and("nosql-db", StateValue.WARNING)
+        .build();
 
     assertThat(checkedState.getHighestState(), is(StateValue.ALERT));
   }
@@ -53,30 +54,32 @@ public class CheckedStateSpecification {
   public void shouldAddNewCheckedState() {
     CheckedState checkedState = CheckedState
         .with("memory", StateValue.CLEAR)
-        .and("nosql-db", StateValue.WARNING);
+        .and("nosql-db", StateValue.WARNING)
+        .build();
 
-    checkedState.updateGiven(Event.builder()
+    CheckedState newCheckedState = checkedState.updateGiven(Event.builder()
         .checkState("sql-db")
         .state(StateValue.ALERT)
         .build());
 
-    assertThat(checkedState.isTracking("sql-db"), is(true));
-    assertThat(checkedState.valueOf("sql-db"), is(StateValue.ALERT));
+    assertThat(newCheckedState.isTracking("sql-db"), is(true));
+    assertThat(newCheckedState.valueOf("sql-db"), is(StateValue.ALERT));
   }
 
   @Test
   public void shouldUpdateExistingCheckedState() {
     CheckedState checkedState = CheckedState
         .with("memory", StateValue.CLEAR)
-        .and("nosql-db", StateValue.WARNING);
+        .and("nosql-db", StateValue.WARNING)
+        .build();
 
-    checkedState.updateGiven(Event.builder()
+    CheckedState newCheckedState = checkedState.updateGiven(Event.builder()
         .checkState("nosql-db")
         .state(StateValue.ALERT)
         .build());
 
-    assertThat(checkedState.valueOf("nosql-db"), is(not(StateValue.WARNING)));
-    assertThat(checkedState.valueOf("nosql-db"), is(StateValue.ALERT));
+    assertThat(newCheckedState.valueOf("nosql-db"), is(not(StateValue.WARNING)));
+    assertThat(newCheckedState.valueOf("nosql-db"), is(StateValue.ALERT));
   }
 
 }

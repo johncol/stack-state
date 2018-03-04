@@ -1,9 +1,6 @@
 package stackstate.domain;
 
-import stackstate.domain.event.Event;
-import stackstate.domain.state.CheckedState;
-import stackstate.domain.state.DerivedState;
-import stackstate.domain.state.OwnState;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -11,6 +8,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import stackstate.domain.event.Event;
+import stackstate.domain.state.CheckedState;
+import stackstate.domain.state.DerivedState;
+import stackstate.domain.state.OwnState;
 
 @ToString(exclude = {"dependents", "dependencies"})
 @EqualsAndHashCode(exclude = {"dependents", "dependencies"})
@@ -26,20 +27,24 @@ public class Component {
   private Set<Component> dependencies;
 
   public static Component withId(String id) {
+    return Component.withIdAndCheckedStates(id);
+  }
+
+  public static Component withIdAndCheckedStates(String id, String... checkedStates) {
     return Component.builder()
         .id(id)
         .ownState(OwnState.dataless())
         .derivedState(DerivedState.dataless())
-        .checkedState(CheckedState.dataless())
+        .checkedState(CheckedState.dataless(checkedStates))
         .dependents(new HashSet<>())
         .dependencies(new HashSet<>())
         .build();
   }
 
   public void apply(Event event) {
-    checkedState.updateGiven(event);
-    ownState.updateGiven(checkedState);
-    derivedState.updateGiven(this);
+    checkedState = checkedState.updateGiven(event);
+    ownState = ownState.updateGiven(checkedState);
+    derivedState = derivedState.updateGiven(this);
     dependents.forEach(Component::reCalculateDerivedState);
   }
 
@@ -48,8 +53,16 @@ public class Component {
     dependency.addDependent(this);
   }
 
+  public void addDependencyOn(Component... newDependencies) {
+    Arrays.stream(newDependencies).forEach(this::addDependencyOn);
+  }
+
   protected void reCalculateDerivedState() {
-    derivedState.updateGiven(this);
+    DerivedState oldDerivedState = derivedState;
+    derivedState = derivedState.updateGiven(this);
+    if (!derivedState.equals(oldDerivedState)) {
+      dependents.forEach(Component::reCalculateDerivedState);
+    }
   }
 
   private void addDependent(Component dependent) {
