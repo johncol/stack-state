@@ -24,7 +24,12 @@ public class StateCalculatorSpecification {
 
     StackState finalState = stateCalculator.processEvents(initialState, emptyEventChain);
 
-    assertThat(finalState, is(equalTo(initialState)));
+    assertThat(finalState.getComponent("APP").get(), is(equalTo(Component.builder()
+        .id("APP")
+        .checkedState(CheckedState.dataless())
+        .ownState(OwnState.dataless())
+        .derivedState(DerivedState.dataless())
+        .build())));
   }
 
   @Test
@@ -40,7 +45,19 @@ public class StateCalculatorSpecification {
 
     StackState finalState = stateCalculator.processEvents(initialState, emptyEventChain);
 
-    assertThat(finalState, is(equalTo(initialState)));
+    assertThat(finalState.getComponent("APP").get(), is(equalTo(Component.builder()
+        .id("APP")
+        .checkedState(CheckedState.dataless())
+        .ownState(OwnState.dataless())
+        .derivedState(DerivedState.dataless())
+        .build())));
+
+    assertThat(finalState.getComponent("DB").get(), is(equalTo(Component.builder()
+        .id("DB")
+        .checkedState(CheckedState.dataless())
+        .ownState(OwnState.dataless())
+        .derivedState(DerivedState.dataless())
+        .build())));
   }
 
   @Test
