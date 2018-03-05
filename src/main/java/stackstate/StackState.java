@@ -11,15 +11,19 @@ import stackstate.domain.Component;
 @AllArgsConstructor
 public class StackState {
 
-  private List<Component> components;
+  private final List<Component> components;
 
   public static StackState withComponent(Component component) {
     return withComponents(component);
   }
 
   public static StackState withComponents(Component... components) {
+    return StackState.withComponents(Arrays.asList(components));
+  }
+
+  public static StackState withComponents(List<Component> components) {
     return StackState.builder()
-        .components(Arrays.asList(components))
+        .components(components)
         .build();
   }
 
@@ -27,5 +31,9 @@ public class StackState {
     return components.stream()
         .filter(component -> component.getId().equals(componentId))
         .findFirst();
+  }
+
+  public int size() {
+    return components.size();
   }
 }

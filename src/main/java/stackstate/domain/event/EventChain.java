@@ -24,8 +24,12 @@ public class EventChain implements Iterable<Event> {
   }
 
   public static EventChain withEvents(Event... events) {
+    return EventChain.withEvents(Arrays.asList(events));
+  }
+
+  public static EventChain withEvents(List<Event> events) {
     return EventChain.builder()
-        .events(Arrays.asList(events))
+        .events(events)
         .build();
   }
 
@@ -38,4 +42,11 @@ public class EventChain implements Iterable<Event> {
     return events.stream();
   }
 
+  public int size() {
+    return events.size();
+  }
+
+  public Event getEvent(int index) {
+    return events.get(index);
+  }
 }

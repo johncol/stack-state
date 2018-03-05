@@ -3,6 +3,7 @@ package stackstate.domain.event;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import stackstate.domain.enumeration.StateValue;
@@ -10,6 +11,7 @@ import stackstate.domain.enumeration.StateValue;
 @ToString
 @Getter
 @Builder
+@EqualsAndHashCode
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Event implements Comparable<Event> {
 
