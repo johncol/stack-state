@@ -65,6 +65,10 @@ public class CheckedState implements UpdatableState<Event, CheckedState>, Clonea
         .orElse(StateValue.NO_DATA);
   }
 
+  public Map<String, StateValue> getValues() {
+    return Collections.unmodifiableMap(values);
+  }
+
   @Override
   public CheckedState clone() {
     return new CheckedState(Collections.unmodifiableMap(values));

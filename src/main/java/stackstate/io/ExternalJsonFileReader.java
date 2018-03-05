@@ -63,5 +63,6 @@ public class ExternalJsonFileReader implements StackStateReader {
 
 @FunctionalInterface
 interface InputOutputDtoSupplier<T> {
+
   T get() throws IOException;
 }

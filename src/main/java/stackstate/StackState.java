@@ -3,6 +3,7 @@ package stackstate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import stackstate.domain.Component;
@@ -36,4 +37,9 @@ public class StackState {
   public int size() {
     return components.size();
   }
+
+  public Stream<Component> stream() {
+    return components.stream();
+  }
+
 }
