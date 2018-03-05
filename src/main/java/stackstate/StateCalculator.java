@@ -11,4 +11,5 @@ public class StateCalculator {
             .ifPresent(component -> component.apply(event)));
     return initialState;
   }
+
 }

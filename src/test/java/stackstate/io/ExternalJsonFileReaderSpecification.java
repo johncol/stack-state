@@ -5,6 +5,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import java.util.Set;
 import org.junit.Test;
 import stackstate.StackState;
@@ -15,15 +17,20 @@ import stackstate.domain.event.EventChain;
 import stackstate.domain.state.CheckedState;
 import stackstate.domain.state.DerivedState;
 import stackstate.domain.state.OwnState;
+import stackstate.io.reader.ExternalJsonFileReader;
+import stackstate.io.reader.StackStateReader;
 import utils.Any;
 
 public class ExternalJsonFileReaderSpecification {
+
+  private final ObjectMapper objectMapper = new ObjectMapper()
+      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
 
   @Test(expected = IllegalArgumentException.class)
   public void shouldThrowExceptionWhenStackStateJsonFileIsMalformed() {
     String stateFile = getFileFullPath("./stack-state-malformed.json");
 
-    StackStateReader reader = new ExternalJsonFileReader(stateFile, Any.fileName());
+    StackStateReader reader = new ExternalJsonFileReader(stateFile, Any.fileName(), objectMapper);
     reader.readInitialState();
   }
 
@@ -31,7 +38,7 @@ public class ExternalJsonFileReaderSpecification {
   public void shouldThrowExceptionWhenEventsJsonFileIsMalformed() {
     String eventsFile = getFileFullPath("./events-malformed.json");
 
-    StackStateReader reader = new ExternalJsonFileReader(Any.fileName(), eventsFile);
+    StackStateReader reader = new ExternalJsonFileReader(Any.fileName(), eventsFile, objectMapper);
     reader.readEvents();
   }
 
@@ -39,7 +46,7 @@ public class ExternalJsonFileReaderSpecification {
   public void shouldBuildEmptyStackStateWhenStackStateJsonFileIsEmpty() {
     String stateFile = getFileFullPath("./stack-state-empty.json");
 
-    StackStateReader reader = new ExternalJsonFileReader(stateFile, Any.fileName());
+    StackStateReader reader = new ExternalJsonFileReader(stateFile, Any.fileName(), objectMapper);
     StackState stackState = reader.readInitialState();
 
     assertThat(stackState.size(), is(equalTo(0)));
@@ -49,7 +56,7 @@ public class ExternalJsonFileReaderSpecification {
   public void shouldBuildEmptyEventChainWhenEventsJsonFileIsEmpty() {
     String eventsFile = getFileFullPath("./events-empty.json");
 
-    StackStateReader reader = new ExternalJsonFileReader(Any.fileName(), eventsFile);
+    StackStateReader reader = new ExternalJsonFileReader(Any.fileName(), eventsFile, objectMapper);
     EventChain events = reader.readEvents();
 
     assertThat(events.size(), is(equalTo(0)));
@@ -59,7 +66,7 @@ public class ExternalJsonFileReaderSpecification {
   public void shouldBuildStackStateWhenStackStateJsonFileIsNotEmpty() {
     String stateFile = getFileFullPath("./stack-state-non-empty.json");
 
-    StackStateReader reader = new ExternalJsonFileReader(stateFile, Any.fileName());
+    StackStateReader reader = new ExternalJsonFileReader(stateFile, Any.fileName(), objectMapper);
     StackState stackState = reader.readInitialState();
 
     assertThat(stackState.size(), is(equalTo(2)));
@@ -104,7 +111,7 @@ public class ExternalJsonFileReaderSpecification {
   public void shouldBuildEventChainWhenEventsJsonFileIsNotEmpty() {
     String eventsFile = getFileFullPath("./events-non-empty.json");
 
-    StackStateReader reader = new ExternalJsonFileReader(Any.fileName(), eventsFile);
+    StackStateReader reader = new ExternalJsonFileReader(Any.fileName(), eventsFile, objectMapper);
     EventChain eventChain = reader.readEvents();
 
     assertThat(eventChain.size(), is(equalTo(2)));

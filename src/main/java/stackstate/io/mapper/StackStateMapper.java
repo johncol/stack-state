@@ -100,7 +100,7 @@ public class StackStateMapper {
   }
 
   private List<String> buildComponentsIdsList(Set<Component> components) {
-    return components == null ? List.of() : components
+    return components == null || components.isEmpty() ? null : components
         .stream()
         .map(Component::getId)
         .collect(Collectors.toList());

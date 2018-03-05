@@ -180,7 +180,6 @@ public class StackStateMapperSpecification {
         .derivedState("clear")
         .checkStates(Map.of("memory", "clear"))
         .dependsOn(List.of("db"))
-        .dependencyOf(List.of())
         .build();
     assertThat(components.get(0), is(equalTo(appComponentDto)));
 
@@ -189,7 +188,6 @@ public class StackStateMapperSpecification {
         .ownState("warning")
         .derivedState("alert")
         .checkStates(Map.of("memory", "warning"))
-        .dependsOn(List.of())
         .dependencyOf(List.of("app"))
         .build();
     assertThat(components.get(1), is(equalTo(dbComponentDto)));

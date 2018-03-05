@@ -1,5 +1,7 @@
 package stackstate.io.dto.state;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+@JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode
 @Getter
 @Setter

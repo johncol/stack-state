@@ -1,4 +1,4 @@
-package stackstate.io;
+package stackstate.io.reader;
 
 import stackstate.StackState;
 import stackstate.domain.event.EventChain;

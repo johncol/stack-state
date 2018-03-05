@@ -1,9 +1,8 @@
-package stackstate.io;
+package stackstate.io.reader;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import java.io.File;
 import java.io.IOException;
 import lombok.AllArgsConstructor;
@@ -17,14 +16,12 @@ import stackstate.io.mapper.StackStateMapper;
 @AllArgsConstructor
 public class ExternalJsonFileReader implements StackStateReader {
 
-  private final ObjectMapper objectMapper = new ObjectMapper()
-      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-
   private final StackStateMapper stackStateMapper = new StackStateMapper();
   private final StackEventMapper stackEventMapper = new StackEventMapper();
 
   private final String stateFilePath;
   private final String eventsFilePath;
+  private final ObjectMapper objectMapper;
 
   @Override
   public StackState readInitialState() {
@@ -63,6 +60,5 @@ public class ExternalJsonFileReader implements StackStateReader {
 
 @FunctionalInterface
 interface InputOutputDtoSupplier<T> {
-
   T get() throws IOException;
 }
