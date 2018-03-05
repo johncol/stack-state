@@ -23,7 +23,7 @@ public class StackEventMapper {
         .collect(Collectors.toList());
 
     if (events.stream().map(Event::getTimestamp).distinct().count() < events.size()) {
-      throw new IllegalEventConfigurationException("Timestamp number must be unique across the events chain");
+      throw new IllegalEventConfigurationException("Timestamp number must be unique across the event chain");
     }
 
     return EventChain.withEvents(events);

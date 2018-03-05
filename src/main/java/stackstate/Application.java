@@ -17,17 +17,20 @@ public class Application {
 
   public static void main(String[] args) {
     if (args.length < 2) {
-      throw new IllegalArgumentException("Two json files are required");
+      System.out.println("Two json files are required");
+      return;
     }
 
     StackStateReader reader = new ExternalJsonFileReader(args[0], args[1], objectMapper);
-
-    StackState stackState = reader.readInitialState();
-    EventChain events = reader.readEvents();
-    StackState finalState = new StateCalculator().processEvents(stackState, events);
-
-    StackStateWriter writer = new ConsoleWriter(finalState, objectMapper);
-    writer.write();
+    try {
+      StackState stackState = reader.readInitialState();
+      EventChain events = reader.readEvents();
+      StackState finalState = new StateCalculator().processEvents(stackState, events);
+      StackStateWriter writer = new ConsoleWriter(finalState, objectMapper);
+      writer.write();
+    } catch (IllegalArgumentException e) {
+      System.out.println(e.getMessage());
+    }
   }
 
 }

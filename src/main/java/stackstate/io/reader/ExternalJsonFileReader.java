@@ -45,14 +45,11 @@ public class ExternalJsonFileReader implements StackStateReader {
     try {
       return readSupplier.get();
     } catch (JsonMappingException e) {
-      e.printStackTrace();
-      throw new IllegalArgumentException("Error mapping json" + ": " + e.getMessage());
+      throw new IllegalArgumentException("Cannot map json content to DTO: " + e.getMessage());
     } catch (JsonParseException e) {
-      e.printStackTrace();
-      throw new IllegalArgumentException("Error parsing json" + ": " + e.getMessage());
+      throw new IllegalArgumentException("JSON content is malformed: " + e.getMessage());
     } catch (IOException e) {
-      e.printStackTrace();
-      throw new IllegalArgumentException("Error reading json" + ": " + e.getMessage());
+      throw new IllegalArgumentException("I/O error: " + e.getMessage());
     }
   }
 
