@@ -82,4 +82,17 @@ public class CheckedStateSpecification {
     assertThat(newCheckedState.valueOf("nosql-db"), is(StateValue.ALERT));
   }
 
+  @Test
+  public void shouldBeImmutable() {
+    CheckedState originalCheckedState = CheckedState.withJust("memory", StateValue.CLEAR);
+
+    CheckedState newCheckedState = originalCheckedState.updateGiven(Event.builder()
+        .checkState("nosql-db")
+        .state(StateValue.WARNING)
+        .build());
+
+    assertThat(originalCheckedState.isTracking("nosql-db"), is(false));
+    assertThat(newCheckedState.isTracking("nosql-db"), is(true));
+  }
+
 }

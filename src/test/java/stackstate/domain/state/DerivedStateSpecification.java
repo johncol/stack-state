@@ -69,4 +69,22 @@ public class DerivedStateSpecification {
     assertThat(derivedState.value(), is(StateValue.ALERT));
   }
 
+  @Test
+  public void shouldBeImmutable() {
+    Set<Component> dependencies = Set.of(
+        Any.componentWithDerivedState(StateValue.WARNING),
+        Any.componentWithDerivedState(StateValue.ALERT)
+    );
+    Component component = Component.builder()
+        .ownState(OwnState.of(Any.of(StateValue.NO_DATA, StateValue.CLEAR, StateValue.WARNING)))
+        .dependencies(dependencies)
+        .build();
+
+    DerivedState originalDerivedState = DerivedState.of(StateValue.WARNING);
+    DerivedState newDerivedState = originalDerivedState.updateGiven(component);
+
+    assertThat(originalDerivedState.value(), is(StateValue.WARNING));
+    assertThat(newDerivedState.value(), is(StateValue.ALERT));
+  }
+
 }

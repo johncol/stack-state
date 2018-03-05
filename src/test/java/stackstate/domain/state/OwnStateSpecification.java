@@ -38,4 +38,16 @@ public class OwnStateSpecification {
     assertThat(ownState.value(), is(StateValue.NO_DATA));
   }
 
+  @Test
+  public void shouldBeImmutable() {
+    CheckedState checkedState = CheckedState.withJust("sql-db", StateValue.ALERT);
+
+    OwnState originalOwnState = OwnState.of(StateValue.CLEAR);
+    OwnState newOwnState = originalOwnState.updateGiven(checkedState);
+
+    assertThat(originalOwnState.value(), is(StateValue.CLEAR));
+    assertThat(newOwnState.value(), is(StateValue.ALERT));
+
+  }
+
 }
